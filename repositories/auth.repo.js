@@ -8,7 +8,15 @@ const findUserByEmail = async (email) => {
   return await User.findOne({ email });
 };
 
+// ✅ New function: check both email and username
+const findUserByEmailOrUsername = async (email, username) => {
+  return await User.findOne({
+    $or: [{ email }, { username }]
+  });
+};
+
 module.exports = {
   createUser,
-  findUserByEmail
+  findUserByEmail,
+  findUserByEmailOrUsername // <-- ab controller me use ho sakta
 };

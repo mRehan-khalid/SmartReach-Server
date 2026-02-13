@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+mongoose.set('strictQuery', true); 
 require('dotenv').config();
 
 const connectionString = process.env.MONGO_URI;

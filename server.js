@@ -1,12 +1,12 @@
 require('dotenv').config();
 const app = require('./app');
-const db = require('./config/database');
+const connectDB = require('./config/database'); // function import
 
-db.open((err) => {
-  if (err) {
-    console.log('DB connection failed');
-    process.exit(1);
-  }
+// DB connect
+connectDB(); // ye hi async DB connect karega
+
+app.get('/', (req, res) => {
+  res.send('Server OK');
 });
 
 const PORT = process.env.PORT || 5000;
