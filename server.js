@@ -1,8 +1,8 @@
 // server.js
 require('dotenv').config();
+global.fetch = require("node-fetch");
 const app = require('./app');
 const connectDB = require('./config/databaseConfig');
-
 const PORT = process.env.PORT || 5000;
 
 // server.js

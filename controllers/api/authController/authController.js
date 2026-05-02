@@ -1,8 +1,10 @@
 const authRepository = require('../../../repos/authRepository');
+const validateRegister = require('../../../middleware/validateRegisterMiddleware');
+const otpCooldown = require('../../../middleware/otpCooldownMiddleware');
 
 class AuthController {
     constructor(router) {
-        router.post('/register', this.register.bind(this));
+        router.post('/register',validateRegister, this.register.bind(this));
         router.post('/verifyOtp', this.verifyOtp.bind(this));
         router.post('/resendOtp', this.resendOtp.bind(this));
         router.post('/login', this.login.bind(this));

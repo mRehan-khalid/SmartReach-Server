@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
-
+const transporter = require("../config/mailConfig");
 const User = require('../models/userModel');
 const PendingUsers = require('../models/pendingUserModel');
 
@@ -12,30 +12,34 @@ const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString()
 class AuthRepository {
 
   // ================= REGISTER =================
-  async register(data) {
-    try {
-      console.log("***** repo.register ok");
 
-      const { username, email, password } = data;
-      if (!username || !email || !password)
-        return { status: 400, message: "All fields are required" };
+async register(data) {
+  try {
+    console.log("***** repo.register ok");
+    const { username, email, password } = data;
+    const existingPending = await PendingUsers.findOne({ email });
+    let otp;
+    let expiresAt;
+    let hashedPassword = await bcrypt.hash(password, 10);
+    if (existingPending) {
+      const isValid = existingPending.expiresAt > new Date();
+      
+      if (isValid) {
+        otp = existingPending.otp;
+        expiresAt = existingPending.expiresAt;
+        existingPending.hashedPassword = hashedPassword;
+      } else {
+        otp = generateOtp();
+        expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+        existingPending.otp = otp;
+        existingPending.expiresAt = expiresAt;
+        existingPending.password = hashedPassword;
+        await existingPending.save();
+      }
 
-      const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-      if (existingUser)
-        return { status: 409, message: "User already exists" };
-
-      const existingPending = await PendingUsers.findOne({ email });
-      if (existingPending)
-      return await this.handlePendingRegistration(existingPending, {
-      username,
-      email,
-      password
-    });
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const otp = generateOtp();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
+    } else {
+      otp = generateOtp();
+      expiresAt = new Date(Date.now() + 5 * 60 * 1000);
       await PendingUsers.create({
         username,
         email,
@@ -43,31 +47,24 @@ class AuthRepository {
         otp,
         expiresAt
       });
-
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
-        }
-      });
-
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: "SmartReach OTP Verification",
-        text: `Hello ${username},\nYour OTP is: ${otp}\nValid for 10 minutes.`
-      });
-
-      return { status: 200, message: "OTP sent. Verify to complete registration." };
-
-    } catch (error) {
-      console.error("***** repo.register : error", error);
-      return { status: 500, message: "Server error" };
     }
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "SmartReach OTP Verification",
+      text: `Hello ${username},\nYour OTP is: ${otp}\nValid for 5 minutes.`
+    });
+
+    return {
+      status: 200,
+      message: "OTP sent. Verify to complete registration."
+    };
+
+  } catch (error) {
+    console.error("***** repo.register : error", error);
+    return { status: 500, message: "Server error" };
   }
-
-
+}
 
   async handlePendingRegistration(existingPending, userData) {
   try {
