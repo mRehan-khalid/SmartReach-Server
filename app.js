@@ -1,13 +1,22 @@
+// app.js
 const express = require('express');
 const cors = require('cors');
-
-const authRoutes = require('./routes/auth.routes');
+const  helmet = require('helmet');
+const routerLoader = require('./routes/router'); 
+const errorMiddleware = require('./middleware/errorMiddleware');
 
 const app = express();
 
-app.use(cors());
 app.use(express.json());
+app.use(helmet());
+app.use(cors());
 
-app.use('/api/auth', authRoutes);
+routerLoader.load(app, './controllers'); 
+
+app.get('/', (req, res) => {
+  res.send('Server OK');
+});
+
+app.use(errorMiddleware);
 
 module.exports = app;
