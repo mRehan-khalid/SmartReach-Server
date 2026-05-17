@@ -6,8 +6,9 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true},
   password: { type: String, required: true },
   createdAt: { type: Date, default: Date.now},
-  otp: { type: String },
-  otpExpires: { type: Date }
+  isProfileComplete: {type: Boolean, default:false },
+  resetPasswordToken:{type: String, default: ''},
+  resetPasswordExpires: {type: String, default: ''}
 });
 
 const User = mongoose.model('User', userSchema);

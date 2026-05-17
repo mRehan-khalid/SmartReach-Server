@@ -1,23 +1,24 @@
 const authRepository = require('../../../repos/authRepository');
-const validateRegister = require('../../../middleware/validateRegisterMiddleware');
 const otpCooldown = require('../../../middleware/otpCooldownMiddleware');
+const authService = require('../../../service/authService');
 
 class AuthController {
     constructor(router) {
-        router.post('/register',validateRegister, this.register.bind(this));
+        // router.post('/validateUserSignUp', this.validateUserSignUp.bind(this));
+        router.post('/register', this.register.bind(this));
         router.post('/verifyOtp', this.verifyOtp.bind(this));
-        router.post('/resendOtp', this.resendOtp.bind(this));
+        router.post('/resendOtp',this.resendOtp.bind(this));
         router.post('/login', this.login.bind(this));
         router.post('/forgotPassword', this.forgotPassword.bind(this));
         router.post('/resetPassword', this.resetPassword.bind(this));
     }
 
-    // ================= REGISTER =================
+
     async register(req, res) {
         try {
             console.log("***** controller.register ok");
 
-            const result = await authRepository.register(req.body);
+            const result = await authService.register(req.body);
             return res.status(result.status).json(result);
 
         } catch (error) {
@@ -25,13 +26,24 @@ class AuthController {
             return res.status(500).json({ message: "Server error" });
         }
     }
+    
+    async resendOtp(req, res) {
+        try {
+            console.log("***** controller.resendOtp ok");
 
-    // ================= VERIFY OTP =================
+            const result = await authService.resendOtp(req.body);
+            return res.status(result.status).json(result);
+
+        } catch (error) {
+            console.error("***** controller.resendOtp : error", error);
+            return res.status(500).json({ message: "Server error" });
+        }
+    }
     async verifyOtp(req, res) {
         try {
             console.log("***** controller.verifyOtp ok");
 
-            const result = await authRepository.verifyOtp(req.body);
+            const result = await authService.verifyOtp(req.body);
             return res.status(result.status).json(result);
 
         } catch (error) {
@@ -40,26 +52,12 @@ class AuthController {
         }
     }
 
-    // ================= RESEND OTP =================
-    async resendOtp(req, res) {
-        try {
-            console.log("***** controller.resendOtp ok");
 
-            const result = await authRepository.resendOtp(req.body);
-            return res.status(result.status).json(result);
-
-        } catch (error) {
-            console.error("***** controller.resendOtp : error", error);
-            return res.status(500).json({ message: "Server error" });
-        }
-    }
-
-    // ================= LOGIN =================
     async login(req, res) {
         try {
             console.log("***** controller.login ok");
 
-            const result = await authRepository.login(req.body);
+            const result = await authService.login(req.body);
             return res.status(result.status).json(result);
 
         } catch (error) {
@@ -68,12 +66,11 @@ class AuthController {
         }
     }
 
-    // ================= FORGOT PASSWORD =================
     async forgotPassword(req, res) {
         try {
             console.log("***** controller.forgotPassword ok");
 
-            const result = await authRepository.forgotPassword(req.body);
+            const result = await authService.forgotPassword(req.body);
             return res.status(result.status).json(result);
 
         } catch (error) {
@@ -82,12 +79,11 @@ class AuthController {
         }
     }
 
-    // ================= RESET PASSWORD =================
     async resetPassword(req, res) {
         try {
             console.log("***** controller.resetPassword ok");
 
-            const result = await authRepository.resetPassword(req.body);
+            const result = await authService.resetPassword(req.body);
             return res.status(result.status).json(result);
 
         } catch (error) {
